@@ -1,87 +1,74 @@
-# Plugin & Skill Manager for Antigravity
+# Antigravity Plugin & Skill Manager
 
-[![Antigravity Plugin](https://img.shields.io/badge/Antigravity-Plugin-blue.svg)](https://github.com/Wandering233/antigravity-plugin-manager)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+Extension manager to audit, synchronize, and update Antigravity plugins, community skills, and custom MCP tools.
 
-A dual-phase manager to inspect, update, and synchronize official Antigravity marketplace plugins, third-party skills, and custom MCP tools.
+## Features
 
----
+- **Dual-Phase Synchronization**:
+  - Audits and upgrades official marketplace plugins (`antigravity-plugins-official`).
+  - Synchronizes third-party skills, local repositories, and custom MCP configurations.
+- **Sidecar Dashboard**: Auxiliary panel displaying installed plugins, enabled states, skill counts, and update status.
+- **Quick Triggers**:
+  - Slash command: `/update-plugins`
+  - Starter prompt pills in Antigravity desktop canvas.
+  - Standalone script: `update.sh`
 
-## ✨ Features
+## Installation
 
-- 🔄 **Dual-Phase Synchronization (双阶段智能更新)**:
-  - **Phase 1 (Official First)**: Automatically audits and upgrades plugins installed from official sources (`antigravity-plugins-official`).
-  - **Phase 2 (Custom & Third-Party)**: Synchronizes third-party skills (e.g., Emil Kowalski design/animation library), local tools (e.g., REA reverse-engineering suite), and Git repositories.
-- 📊 **Visual Dashboard (Sidecar Web UI)**:
-  - Auxiliary panel displaying installed plugins, enablement status, skill counts, and update readiness.
-- ⚡ **Integrated Quick Actions**:
-  - Surfaces interactive starter prompt pills directly on the Antigravity desktop canvas card.
-  - Dedicated `/update-plugins` slash command.
-  - Terminal hook: `update.sh`.
+### Global
 
----
-
-## 🚀 Installation & Debugging (快速安装与调试)
-
-### 1. 全局安装 (Global Install)
-
-将仓库克隆至 Antigravity 全局插件目录：
+Clone into the Antigravity global plugins directory:
 
 ```bash
 git clone https://github.com/Wandering233/antigravity-plugin-manager.git ~/.gemini/config/plugins/plugin-manager
 ```
 
-重启 Antigravity 后即可在侧边栏、插件中心或通过 `/update-plugins` 调用。
+Restart Antigravity to discover the plugin.
 
-### 2. 工作区隔离调试 (Workspace Sandbox Install)
+### Workspace Sandbox (Testing)
 
-若仅想在特定测试项目中调试本插件：
+To test inside a specific repository without modifying global configurations:
 
 ```bash
 mkdir -p .agents/plugins
 git clone https://github.com/Wandering233/antigravity-plugin-manager.git .agents/plugins/plugin-manager
 ```
 
-### 3. 插件规范校验 (CLI Validation)
+### Manifest Validation
 
-在终端运行官方 CLI 工具检查插件完整性：
+Validate plugin structure using the Antigravity CLI:
 
 ```bash
 agy plugin validate ~/.gemini/config/plugins/plugin-manager
 ```
 
----
+## Usage
 
-## 🛠️ Usage
+- Run `/update-plugins` in the chat prompt.
+- Open the `Plugin & Skill Manager` view from the auxiliary panel.
+- Or execute `./update.sh` from the plugin directory.
 
-- **Via Slash Command**: `/update-plugins`
-- **Via Overview / Starter Canvas**: Click any of the 3 suggested prompt pills on the Plugin Manager card.
-- **Via Sidecar UI**: Open the `Plugin & Skill Manager` auxiliary panel in Antigravity.
-
----
-
-## 📁 Directory Structure
+## Directory Structure
 
 ```text
 plugin-manager/
-├── plugin.json         # Plugin manifest
+├── plugin.json
 ├── assets/
-│   └── logo.png        # Plugin logo
+│   └── logo.png
 ├── sidecars/
 │   └── manager/
-│       ├── sidecar.json # Sidecar declaration
-│       ├── server.mjs   # Management server
-│       └── index.html   # Visual dashboard
+│       ├── index.html
+│       ├── server.mjs
+│       └── sidecar.json
 ├── skills/
 │   └── update-plugins/
-│       └── SKILL.md     # Automated upgrade agent skill
-├── update.sh           # Standalone updater script
+│       └── SKILL.md
+├── update.sh
 ├── .gitignore
+├── LICENSE
 └── README.md
 ```
 
----
+## License
 
-## 📄 License
-
-[MIT License](LICENSE) © 2026 Wandering233
+MIT
