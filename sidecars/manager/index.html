@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plugin & Skill Manager</title>
+  <style>
+    :root {
+      --bg: #1e1e2e;
+      --card-bg: #252538;
+      --border: #383850;
+      --text: #e0e0e8;
+      --text-muted: #9595ad;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --badge-bg: #31314d;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f8fafc;
+        --card-bg: #ffffff;
+        --border: #e2e8f0;
+        --text: #0f172a;
+        --text-muted: #64748b;
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --success: #059669;
+        --badge-bg: #f1f5f9;
+      }
+    }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      box-sizing: border-box;
+      line-height: 1.5;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .title-group h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn:hover {
+      background-color: var(--primary-hover);
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .plugin-list {
+      display: grid;
+      gap: 10px;
+    }
+    .plugin-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .plugin-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .plugin-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .plugin-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .badge {
+      background: var(--badge-bg);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .badge.active {
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.15);
+    }
+    .terminal-container {
+      margin-top: 20px;
+      background: #11111b;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: none;
+    }
+    .terminal-header {
+      background: #181825;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+    }
+    .terminal-body {
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      max-height: 240px;
+      overflow-y: auto;
+      color: #a6adc8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="title-group">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+      </svg>
+      <h2>Plugin & Skill Manager</h2>
+    </div>
+    <button id="updateBtn" class="btn" onclick="startUpdate()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+      </svg>
+      一键双阶段更新
+    </button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">官方市场基座 (Official Marketplace)</div>
+    <div id="officialList" class="plugin-list">正在加载...</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">自定义与第三方扩展 (Custom / Third-Party)</div>
+    <div id="customList" class="plugin-list">正在加载...</div>
+  </div>
+
+  <div id="termContainer" class="terminal-container">
+    <div class="terminal-header">
+      <span>更新执行日志</span>
+      <span id="termStatus">运行中...</span>
+    </div>
+    <div id="termBody" class="terminal-body"></div>
+  </div>
+
+  <script>
+    async function loadPlugins() {
+      try {
+        const res = await fetch("/api/plugins");
+        const list = await res.json();
+        
+        const official = list.filter(p => p.source && p.source.includes("official"));
+        const custom = list.filter(p => !p.source || !p.source.includes("official"));
+
+        renderList("officialList", official);
+        renderList("customList", custom);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderList(targetId, plugins) {
+      const container = document.getElementById(targetId);
+      if (!plugins.length) {
+        container.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">无插件</div>`;
+        return;
+      }
+      container.innerHTML = plugins.map(p => `
+        <div class="plugin-item">
+          <div class="plugin-info">
+            <span class="plugin-name">${p.name}</span>
+            <span class="plugin-sub">版本: v${p.version || "1.0.0"} · 技能: ${p.skills ? p.skills.length : 0}个</span>
+          </div>
+          <span class="badge ${p.enabled ? "active" : ""}">
+            ${p.enabled ? "已启用" : "已停用"}
+          </span>
+        </div>
+      `).join("");
+    }
+
+    function startUpdate() {
+      const btn = document.getElementById("updateBtn");
+      const termBox = document.getElementById("termContainer");
+      const termBody = document.getElementById("termBody");
+      const termStatus = document.getElementById("termStatus");
+
+      btn.disabled = true;
+      btn.innerText = "正在更新中...";
+      termBox.style.display = "block";
+      termBody.innerText = "";
+      termStatus.innerText = "运行中...";
+
+      const eventSource = new EventSource("/api/update", { withCredentials: false });
+
+      // Fallback post call
+      fetch("/api/update", { method: "POST" }).then(res => {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        function readStream() {
+          reader.read().then(({ done, value }) => {
+            if (done) return;
+            const chunk = decoder.decode(value);
+            const lines = chunk.split("\n\n");
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                try {
+                  const ev = JSON.parse(line.slice(6));
+                  if (ev.type === "stdout" || ev.type === "stderr") {
+                    termBody.innerText += ev.text;
+                    termBody.scrollTop = termBody.scrollHeight;
+                  } else if (ev.type === "done") {
+                    termStatus.innerText = ev.code === 0 ? "更新完成" : "异常退出";
+                    btn.disabled = false;
+                    btn.innerText = "一键双阶段更新";
+                    loadPlugins();
+                  }
+                } catch (e) {}
+              }
+            }
+            readStream();
+          });
+        }
+        readStream();
+      });
+    }
+
+    loadPlugins();
+  </script>
+</body>
+</html>

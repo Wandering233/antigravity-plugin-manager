@@ -1,0 +1,15 @@
+{
+  "name": "plugin-manager",
+  "displayName": "Plugin & Skill Manager",
+  "version": "1.0.0",
+  "description": "Dual-phase manager to inspect, update, and synchronize official Antigravity marketplace plugins, third-party skills, and custom MCP tools.",
+  "logo": "assets/logo.png",
+  "author": "Wandering233",
+  "homepage": "https://github.com/Wandering233/antigravity-plugin-manager",
+  "repository": "https://github.com/Wandering233/antigravity-plugin-manager",
+  "suggestedPrompts": [
+    "检查并更新所有官方与自定义插件",
+    "查看当前所有已安装插件的更新状态",
+    "同步最新的 REA 逆向工具与 Emil 动效技能库"
+  ]
+}

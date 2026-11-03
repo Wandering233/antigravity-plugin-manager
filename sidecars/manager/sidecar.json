@@ -1,0 +1,20 @@
+{
+  "command": "node",
+  "args": [
+    "server.mjs"
+  ],
+  "restart_policy": "always",
+  "display_name": "Plugin & Skill Manager",
+  "description": "Inspect and update Antigravity plugins and skills with a live dashboard.",
+  "has_web_ui": true,
+  "ui_config": {
+    "display_name": "Plugin & Skill Manager",
+    "views": [
+      {
+        "title": "Plugin Manager",
+        "path": "/",
+        "entrypoint": "SIDECAR_UI_ENTRYPOINT_AUX_PANE"
+      }
+    ]
+  }
+}
