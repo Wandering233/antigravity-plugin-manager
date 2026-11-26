@@ -225,9 +225,9 @@
 
   <script>
     function isOfficial(p) {
-      if (p.source && p.source.includes("official")) return true;
+      if (p.source) return true;
       if (p.path && p.path.includes("builtin")) return true;
-      return !p.isGit && !String(p.name || "").startsWith("antigravity-");
+      return false;
     }
 
     async function loadPlugins() {
