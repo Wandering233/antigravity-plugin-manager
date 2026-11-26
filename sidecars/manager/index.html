@@ -13,6 +13,8 @@
       --text-muted: #9595ad;
       --primary: #6366f1;
       --primary-hover: #4f46e5;
+      --secondary: #31314d;
+      --secondary-hover: #3e3e61;
       --success: #10b981;
       --badge-bg: #31314d;
     }
@@ -25,6 +27,8 @@
         --text-muted: #64748b;
         --primary: #4f46e5;
         --primary-hover: #4338ca;
+        --secondary: #f1f5f9;
+        --secondary-hover: #e2e8f0;
         --success: #059669;
         --badge-bg: #f1f5f9;
       }
@@ -42,6 +46,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
       margin-bottom: 20px;
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
@@ -56,10 +61,15 @@
       font-size: 1.25rem;
       font-weight: 600;
     }
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       background-color: var(--primary);
       color: white;
       border: none;
@@ -72,6 +82,19 @@
     }
     .btn:hover {
       background-color: var(--primary-hover);
+    }
+    .btn.secondary {
+      background-color: var(--secondary);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn.secondary:hover {
+      background-color: var(--secondary-hover);
+    }
+    .btn.sm {
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      border-radius: 5px;
     }
     .btn:disabled {
       opacity: 0.6;
@@ -100,6 +123,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
     }
     .plugin-info {
       display: flex;
@@ -113,6 +137,11 @@
     .plugin-sub {
       font-size: 0.8rem;
       color: var(--text-muted);
+    }
+    .plugin-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .badge {
       background: var(--badge-bg);
@@ -148,7 +177,7 @@
       font-family: monospace;
       font-size: 0.8rem;
       white-space: pre-wrap;
-      max-height: 240px;
+      max-height: 260px;
       overflow-y: auto;
       color: #a6adc8;
     }
@@ -163,12 +192,17 @@
       </svg>
       <h2>Plugin & Skill Manager</h2>
     </div>
-    <button id="updateBtn" class="btn" onclick="startUpdate()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-      </svg>
-      一键双阶段更新
-    </button>
+    <div class="actions">
+      <button id="reloadAllBtn" class="btn secondary" onclick="reloadPlugins()">
+        热重载全部
+      </button>
+      <button id="updateBtn" class="btn" onclick="startUpdate()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+        </svg>
+        一键更新并热重载
+      </button>
+    </div>
   </div>
 
   <div class="section">
@@ -183,20 +217,26 @@
 
   <div id="termContainer" class="terminal-container">
     <div class="terminal-header">
-      <span>更新执行日志</span>
+      <span>更新与热重载日志</span>
       <span id="termStatus">运行中...</span>
     </div>
     <div id="termBody" class="terminal-body"></div>
   </div>
 
   <script>
+    function isOfficial(p) {
+      if (p.source && p.source.includes("official")) return true;
+      if (p.path && p.path.includes("builtin")) return true;
+      return !p.isGit && !String(p.name || "").startsWith("antigravity-");
+    }
+
     async function loadPlugins() {
       try {
         const res = await fetch("/api/plugins");
         const list = await res.json();
-        
-        const official = list.filter(p => p.source && p.source.includes("official"));
-        const custom = list.filter(p => !p.source || !p.source.includes("official"));
+
+        const official = list.filter(isOfficial);
+        const custom = list.filter((p) => !isOfficial(p));
 
         renderList("officialList", official);
         renderList("customList", custom);
@@ -217,11 +257,42 @@
             <span class="plugin-name">${p.name}</span>
             <span class="plugin-sub">版本: v${p.version || "1.0.0"} · 技能: ${p.skills ? p.skills.length : 0}个</span>
           </div>
-          <span class="badge ${p.enabled ? "active" : ""}">
-            ${p.enabled ? "已启用" : "已停用"}
-          </span>
+          <div class="plugin-right">
+            <button class="btn secondary sm" onclick="reloadPlugins(['${p.dir || p.name}'])">热重载</button>
+            <span class="badge ${p.enabled ? "active" : ""}">
+              ${p.enabled ? "已启用" : "已停用"}
+            </span>
+          </div>
         </div>
       `).join("");
+    }
+
+    async function reloadPlugins(plugins) {
+      const termBox = document.getElementById("termContainer");
+      const termBody = document.getElementById("termBody");
+      const termStatus = document.getElementById("termStatus");
+      termBox.style.display = "block";
+      termStatus.innerText = "热重载中...";
+      termBody.innerText = plugins ? `正在热重载 ${plugins.join(", ")}...\n` : "正在热重载所有扩展...\n";
+
+      try {
+        const res = await fetch("/api/reload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(plugins ? { plugins } : {})
+        });
+        const data = await res.json();
+        termBody.innerText += data.logs || "完成。\n";
+        termStatus.innerText = data.selfReload ? "正在重启自身..." : "热重载完成";
+        if (data.selfReload) {
+          setTimeout(() => window.location.reload(), 2200);
+        } else {
+          loadPlugins();
+        }
+      } catch (err) {
+        termBody.innerText += `热重载失败: ${err.message}\n`;
+        termStatus.innerText = "异常";
+      }
     }
 
     function startUpdate() {
@@ -236,18 +307,19 @@
       termBody.innerText = "";
       termStatus.innerText = "运行中...";
 
-      const eventSource = new EventSource("/api/update", { withCredentials: false });
-
-      // Fallback post call
       fetch("/api/update", { method: "POST" }).then(res => {
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
+        let buffer = "";
+
         function readStream() {
           reader.read().then(({ done, value }) => {
             if (done) return;
-            const chunk = decoder.decode(value);
-            const lines = chunk.split("\n\n");
-            for (const line of lines) {
+            buffer += decoder.decode(value, { stream: true });
+            const parts = buffer.split("\n\n");
+            buffer = parts.pop() || "";
+
+            for (const line of parts) {
               if (line.startsWith("data: ")) {
                 try {
                   const ev = JSON.parse(line.slice(6));
@@ -255,10 +327,16 @@
                     termBody.innerText += ev.text;
                     termBody.scrollTop = termBody.scrollHeight;
                   } else if (ev.type === "done") {
-                    termStatus.innerText = ev.code === 0 ? "更新完成" : "异常退出";
+                    termStatus.innerText = ev.selfReloading
+                      ? "更新完成，正在热重载自身..."
+                      : (ev.code === 0 ? "更新与热重载完成" : "异常退出");
                     btn.disabled = false;
-                    btn.innerText = "一键双阶段更新";
-                    loadPlugins();
+                    btn.innerText = "一键更新并热重载";
+                    if (ev.selfReloading) {
+                      setTimeout(() => window.location.reload(), 2200);
+                    } else {
+                      loadPlugins();
+                    }
                   }
                 } catch (e) {}
               }
@@ -267,6 +345,11 @@
           });
         }
         readStream();
+      }).catch((err) => {
+        termBody.innerText += `请求失败: ${err.message}\n`;
+        termStatus.innerText = "异常退出";
+        btn.disabled = false;
+        btn.innerText = "一键更新并热重载";
       });
     }
 
